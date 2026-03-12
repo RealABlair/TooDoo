@@ -1,0 +1,5 @@
+C:\Users\Aleksandr\source\repos\TooDoo\ABNetwork\obj\Debug\ABNetwork.csproj.CoreCompileInputs.cache
+C:\Users\Aleksandr\source\repos\TooDoo\ABNetwork\bin\Debug\ABNetwork.dll
+C:\Users\Aleksandr\source\repos\TooDoo\ABNetwork\bin\Debug\ABNetwork.pdb
+C:\Users\Aleksandr\source\repos\TooDoo\ABNetwork\obj\Debug\ABNetwork.dll
+C:\Users\Aleksandr\source\repos\TooDoo\ABNetwork\obj\Debug\ABNetwork.pdb
