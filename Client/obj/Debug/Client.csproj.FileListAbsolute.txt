@@ -1,0 +1,15 @@
+C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.csproj.AssemblyReference.cache
+C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.Properties.Resources.resources
+C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.csproj.GenerateResource.cache
+C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.csproj.CoreCompileInputs.cache
+C:\Users\Aleksandr\source\repos\TooDoo\Client\bin\Debug\Client.exe.config
+C:\Users\Aleksandr\source\repos\TooDoo\Client\bin\Debug\Client.exe
+C:\Users\Aleksandr\source\repos\TooDoo\Client\bin\Debug\Client.pdb
+C:\Users\Aleksandr\source\repos\TooDoo\Client\bin\Debug\ABNetwork.dll
+C:\Users\Aleksandr\source\repos\TooDoo\Client\bin\Debug\ABNetwork.pdb
+C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.csproj.CopyComplete
+C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.exe
+C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.pdb
+C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.MainForm.resources
+C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.NewFolderForm.resources
+C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.NewTaskForm.resources
