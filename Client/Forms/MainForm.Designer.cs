@@ -157,6 +157,7 @@ namespace Client
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MainForm";
             this.Text = "TooDoo!";
+            this.Load += new System.EventHandler(this.MainForm_Load);
             this.ToolsPanel.ResumeLayout(false);
             this.ControlBoxPanel.ResumeLayout(false);
             this.ResumeLayout(false);

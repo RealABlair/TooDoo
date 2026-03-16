@@ -18,18 +18,11 @@ namespace Client
 {
     public partial class MainForm : DraggableForm
     {
+        public string LoginKey;
+
         public MainForm()
         {
-            Control.CheckForIllegalCrossThreadCalls = false;
-            netclient.PacketInHandler += Netclient_PacketInHandler;
             InitializeComponent();
-            for(int i = 0; i < 2; i++)
-                AddGroup($"TESTIK{i}");
-        }
-
-        private void Netclient_PacketInHandler(IPacket response, PendingPacket request)
-        {
-            request.onReceivedAction?.Invoke(response, request);
         }
 
         public static Random rnd = new Random();
@@ -45,8 +38,6 @@ namespace Client
         public static Color COLOR_PURPLE = Color.FromArgb(194, 87, 119);
 
         ArrayList<Group> groups = new ArrayList<Group>();
-
-        NetworkClient netclient = new NetworkClient("127.0.0.1", 5050);
 
         private void ExitButton_Click(object sender, EventArgs e)
         {
@@ -121,11 +112,41 @@ namespace Client
 
             deleteGroupButton.Click += (sender, e) =>
             {
-                groups.Remove(group);
+                /*groups.Remove(group);
 
                 TasksList.Controls.Remove(groupPanel);
                 TasksList.Controls.Remove(tasksPanel);
-                TasksList.Controls.Remove(spacerPanel);
+                TasksList.Controls.Remove(spacerPanel);*/
+
+                Program.NetClient.SendPacket(new DeleteGroupPacket(groupName, LoginKey), new Action<IPacket, PendingPacket>((responsePacket, pendingPacket) =>
+                {
+                    StatusResponsePacket statusResponsePacket = (StatusResponsePacket)responsePacket;
+
+                    if (statusResponsePacket.status == StatusResponsePacket.Status.Success)
+                    {
+                        if(InvokeRequired)
+                        {
+                            Invoke(new Action(() => 
+                            {
+                                groups.Remove(group);
+
+                                TasksList.Controls.Remove(groupPanel);
+                                TasksList.Controls.Remove(tasksPanel);
+                                TasksList.Controls.Remove(spacerPanel);
+                            }));
+                        }
+                        else
+                        {
+                            groups.Remove(group);
+
+                            TasksList.Controls.Remove(groupPanel);
+                            TasksList.Controls.Remove(tasksPanel);
+                            TasksList.Controls.Remove(spacerPanel);
+                        }
+                    }
+                    else
+                        MessagePopupForm.ShowMessage(statusResponsePacket.data);
+                }));
             };
 
             addTaskButton.Click += (sender, e) =>
@@ -138,7 +159,35 @@ namespace Client
 
                 string taskData = newTaskForm.TaskName;
 
-                AddTask(group, taskData, false);
+                if(group.tasks.FirstOrDefault(t => t.TaskData == taskData) != null)
+                {
+                    MessagePopupForm.ShowMessage("Task with this name already exists.");
+                    return;
+                }
+
+                //AddTask(group, taskData, false);
+
+                Program.NetClient.SendPacket(new CreateTaskPacket(groupName, taskData, LoginKey), new Action<IPacket, PendingPacket>((responsePacket, pendingPacket) =>
+                {
+                    StatusResponsePacket statusResponsePacket = (StatusResponsePacket)responsePacket;
+
+                    if (statusResponsePacket.status == StatusResponsePacket.Status.Success)
+                    {
+                        if (InvokeRequired)
+                        {
+                            Invoke(new Action(() =>
+                            {
+                                AddTask(group, taskData, false);
+                            }));
+                        }
+                        else
+                        {
+                            AddTask(group, taskData, false);
+                        }
+                    }
+                    else
+                        MessagePopupForm.ShowMessage(statusResponsePacket.data);
+                }));
             };
 
             groupPanel.Controls.Add(groupLabel);
@@ -236,14 +285,61 @@ namespace Client
 
             taskLabel.MouseDown += (tlSender, tlE) =>
             {
-                task.SwitchState();
+                //task.SwitchState();
+                Program.NetClient.SendPacket(new SwitchTaskStatePacket(group.groupName, taskData, !task.Done, LoginKey), new Action<IPacket, PendingPacket>((responsePacket, pendingPacket) =>
+                {
+                    StatusResponsePacket statusResponsePacket = (StatusResponsePacket)responsePacket;
+
+                    if (statusResponsePacket.status == StatusResponsePacket.Status.Success)
+                    {
+                        if(InvokeRequired)
+                        {
+                            Invoke(new Action(() =>
+                            {
+                                task.SwitchState();
+                            }));
+                        }
+                        else
+                        {
+                            task.SwitchState();
+                        }
+                    }
+                    else
+                        MessagePopupForm.ShowMessage(statusResponsePacket.data);
+                }));
             };
 
             removeTaskButton.Click += (rtSender, rtE) =>
             {
-                group.tasksPanel.Controls.Remove(taskPanel);
+                /*group.tasksPanel.Controls.Remove(taskPanel);
 
-                group.RemoveTask(task);
+                group.RemoveTask(task);*/
+
+                Program.NetClient.SendPacket(new DeleteTaskPacket(group.groupName, taskData, LoginKey), new Action<IPacket, PendingPacket>((responsePacket, pendingPacket) =>
+                {
+                    StatusResponsePacket statusResponsePacket = (StatusResponsePacket)responsePacket;
+
+                    if (statusResponsePacket.status == StatusResponsePacket.Status.Success)
+                    {
+                        if (InvokeRequired)
+                        {
+                            Invoke(new Action(() =>
+                            {
+                                group.tasksPanel.Controls.Remove(taskPanel);
+
+                                group.RemoveTask(task);
+                            }));
+                        }
+                        else
+                        {
+                            group.tasksPanel.Controls.Remove(taskPanel);
+
+                            group.RemoveTask(task);
+                        }
+                    }
+                    else
+                        MessagePopupForm.ShowMessage(statusResponsePacket.data);
+                }));
             };
 
             ascendTaskButton.Click += (atSender, atE) =>
@@ -288,8 +384,33 @@ namespace Client
             if(result == DialogResult.OK)
             {
                 if (groups.FirstOrDefault(g => g.groupName == newFolderForm.GroupName) != null)
-                    return; //Group already exists, show a message saying that.
-                AddGroup(newFolderForm.GroupName);
+                {
+                    MessagePopupForm.ShowMessage("Group with this name already exists.");
+                    return; 
+                }
+
+                //AddGroup(newFolderForm.GroupName);
+                Program.NetClient.SendPacket(new CreateGroupPacket(newFolderForm.GroupName, LoginKey), new Action<IPacket, PendingPacket>((responsePacket, pendingPacket) =>
+                {
+                    StatusResponsePacket statusResponsePacket = (StatusResponsePacket)responsePacket;
+
+                    if (statusResponsePacket.status == StatusResponsePacket.Status.Success)
+                    {
+                        if(InvokeRequired)
+                        {
+                            Invoke(new Action(() =>
+                            {
+                                AddGroup(newFolderForm.GroupName);
+                            }));
+                        }
+                        else
+                        {
+                            AddGroup(newFolderForm.GroupName);
+                        }
+                    }
+                    else
+                        MessagePopupForm.ShowMessage(statusResponsePacket.data);
+                }));
             }
         }
 
@@ -298,9 +419,25 @@ namespace Client
             groups.Clear();
             TasksList.Controls.Clear();
 
-            netclient.SendPacket(new TasksDataPacket(string.Empty), new Action<IPacket, PendingPacket>((packet, pendingPacket) =>
+            Program.NetClient.SendPacket(new TasksDataPacket(LoginKey), new Action<IPacket, PendingPacket>((packet, pendingPacket) =>
             {
-                HandleNetTasksData(((TasksDataPacket)packet).data);
+                StatusResponsePacket responsePacket = (StatusResponsePacket)packet;
+                if (responsePacket.status == StatusResponsePacket.Status.OK)
+                {
+                    if(InvokeRequired)
+                    {
+                        Invoke(new Action(() => 
+                        {
+                            HandleNetTasksData(responsePacket.data);
+                        }));
+                    }
+                    else
+                    {
+                        HandleNetTasksData(responsePacket.data);
+                    }
+                }
+                else
+                    MessagePopupForm.ShowMessage($"An error has occured while trying to request data. Error information: {responsePacket.data}");
             }));
         }
 
@@ -309,16 +446,23 @@ namespace Client
             KLIN klin = new KLIN(data);
 
             KLINToken[] groups = klin["groups"].Children;
-            for(int i = 0; i < groups.Length; i++)
+            int groupsCount = klin["groups"].ChildrenCount;
+            for (int i = 0; i < groupsCount; i++)
             {
                 Group group = AddGroup(groups[i].PropertyName);
 
                 KLINToken[] tasks = groups[i].Children;
-                for(int j = 0; j < tasks.Length; j++)
+                int tasksCount = groups[i].ChildrenCount;
+                for(int j = 0; j < tasksCount; j++)
                 {
                     AddTask(group, tasks[j].PropertyName, bool.Parse(tasks[j].PropertyObject.ToString()));
                 }
             }
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            //RefreshDataButton_Click(sender, e);
         }
     }
 }

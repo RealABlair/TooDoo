@@ -13,3 +13,6 @@ C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.pdb
 C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.MainForm.resources
 C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.NewFolderForm.resources
 C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.NewTaskForm.resources
+C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.MessagePopupForm.resources
+C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.LoginForm.resources
+C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.RegisterForm.resources
