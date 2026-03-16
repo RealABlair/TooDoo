@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ABSoftware;
 using ABSoftware.Networking.ServerSide;
 using ABSoftware.Networking.Packets;
 using ABSoftware.Networking;
@@ -23,7 +24,9 @@ namespace Server
 
         public Program() : base(5050)
         {
+            Console.WriteLine("Initializing database...");
             DatabaseController.InitializeDatabase();
+            Console.WriteLine("Database initialized!");
         }
 
         public override void OnStart()
@@ -38,14 +41,118 @@ namespace Server
 
         public override void OnPacketIn(TcpClient client, IPacket packet, string UPID)
         {
-            Console.WriteLine();
-
             int packetId = packet.GetPacketId();
             switch (packetId)
             {
                 case 0:
                     {
-                        SendPacket(client, UPID, new TasksDataPacket("(\n\tgroups\n\t(\n\t\tGroup1\n\t\t(\n\t\t\tTask1=True\n\t\t)\n\t)\n)"));
+                        TasksDataPacket tasksDataPacket = (TasksDataPacket)packet;
+                        int userId = DatabaseController.GetLoggedInUserID(tasksDataPacket.loginKey);
+                        if (userId == -1)
+                            return;
+                        ArrayList<(string, string, bool)> groupsAndTasks = DatabaseController.FetchUserGroupsAndTasks(userId);
+                        KLIN klin = new KLIN();
+                        klin["groups"].PropertyObject = null;
+
+                        for(int i = 0; i < groupsAndTasks.Size; i++)
+                        {
+                            klin["groups"][groupsAndTasks[i].Item1][groupsAndTasks[i].Item2].PropertyObject = groupsAndTasks[i].Item3;
+                        }
+
+                        SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.OK, klin.ToString()));
+                    }
+                    break;
+                case 1:
+                    {
+                        CreateGroupPacket createGroupPacket = (CreateGroupPacket)packet;
+                        int userId = DatabaseController.GetLoggedInUserID(createGroupPacket.loginKey);
+                        if(userId == -1)
+                            return;
+
+                        if(DatabaseController.GetGroup(createGroupPacket.groupName, userId).Item1 == -1)
+                        {
+                            DatabaseController.AddGroup(createGroupPacket.groupName, userId);
+                            SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Success, string.Empty));
+                        }
+                        else
+                        {
+                            SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Failed, "Group with this name already exists."));
+                        }
+                    }
+                    break;
+                case 2:
+                    {
+                        CreateTaskPacket createTaskPacket = (CreateTaskPacket)packet;
+                        int userId = DatabaseController.GetLoggedInUserID(createTaskPacket.loginKey);
+                        if (userId == -1)
+                            return;
+                        (int, string, int) group = DatabaseController.GetGroup(createTaskPacket.groupName, userId);
+
+                        if(group.Item1 == -1)
+                        {
+                            SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Failed, "Group doesn't exist."));
+                            return;
+                        }
+
+                        if (DatabaseController.GetTask(group.Item1, createTaskPacket.taskName).Item1 == -1)
+                        {
+                            DatabaseController.AddTask(createTaskPacket.taskName, group.Item1, false);
+                            SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Success, string.Empty));
+                        }
+                        else
+                        {
+                            SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Failed, "Task with this name already exists."));
+                        }
+                    }
+                    break;
+                case 4:
+                    {
+                        RegisterUserPacket registerUserPacket = (RegisterUserPacket)packet;
+
+                        if(registerUserPacket.username.Length < 4)
+                        {
+                            SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Failed, "The username length can't be lower than 4."));
+                            return;
+                        }
+
+                        if (registerUserPacket.password.Length < 2)
+                        {
+                            SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Failed, "The password length can't be lower than 2."));
+                            return;
+                        }
+
+                        if (DatabaseController.GetUser(registerUserPacket.username).Item1 == -1)
+                        {
+                            DatabaseController.AddUser(registerUserPacket.username, ABHA256.Hash(Encoding.UTF8.GetBytes(registerUserPacket.password)), "none");
+                            SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Success, string.Empty));
+                        }
+                        else
+                        {
+                            SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Failed, "An account with this username already exists."));
+                        }
+                    }
+                    break;
+                case 5:
+                    {
+                        LoginUserPacket loginUserPacket = (LoginUserPacket)packet;
+                        (int, string, string) user = DatabaseController.GetUser(loginUserPacket.username);
+                        if (user.Item1 == -1)
+                        {
+                            SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Failed, "An account with this username doesn't exist."));
+                        }
+                        else
+                        {
+                            if (user.Item3 == ABHA256.Hash(Encoding.UTF8.GetBytes(loginUserPacket.password)))
+                            {
+                                string newLoginHash = ABHA256.Hash(Encoding.UTF8.GetBytes($"{user.Item2}{user.Item3}{DateTime.Now.Ticks}"));
+                                DatabaseController.UpdateUserLoginHash(user.Item1, newLoginHash);
+                                SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Success, newLoginHash));
+                            }
+                            else
+                            {
+                                SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Failed, "The password is wrong"));
+                            }
+                        }
                     }
                     break;
             }
