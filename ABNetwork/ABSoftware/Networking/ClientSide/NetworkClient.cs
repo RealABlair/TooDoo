@@ -29,7 +29,7 @@ namespace ABSoftware.Networking.ClientSide
             return $"{random.GetRandomUInt():X8}-{random.GetRandomUInt():X8}-{random.GetRandomUInt():X8}-{random.GetRandomUInt():X8}";
         }
 
-        public void SendPacket(IPacket packet, Action<IPacket, PendingPacket> onReceivedAction = null)
+        public void SendPacket(IPacket packet, Action<IPacket, PendingPacket> onReceivedAction = null, int receiveTimeout = 5000)
         {
             new Thread(() =>
             {
@@ -37,7 +37,7 @@ namespace ABSoftware.Networking.ClientSide
                 {
                     using (TcpClient client = new TcpClient())
                     {
-                        client.ReceiveTimeout = 5000;
+                        client.ReceiveTimeout = receiveTimeout;
                         client.Connect(IP, Port);
 
                         string sendUPID = GenerateUPID();

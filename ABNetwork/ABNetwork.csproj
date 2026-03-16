@@ -50,6 +50,14 @@
     <Compile Include="ABSoftware\Networking\ClientSide\NetworkClient.cs" />
     <Compile Include="ABSoftware\Networking\PacketHandlerAttribute.cs" />
     <Compile Include="ABSoftware\Networking\PacketManager.cs" />
+    <Compile Include="ABSoftware\Networking\Packets\Group\SwitchTaskStatePacket.cs" />
+    <Compile Include="ABSoftware\Networking\Packets\Group\DeleteTaskPacket.cs" />
+    <Compile Include="ABSoftware\Networking\Packets\Group\DeleteGroupPacket.cs" />
+    <Compile Include="ABSoftware\Networking\Packets\Group\CreateTaskPacket.cs" />
+    <Compile Include="ABSoftware\Networking\Packets\Group\CreateGroupPacket.cs" />
+    <Compile Include="ABSoftware\Networking\Packets\Group\LoginUserPacket.cs" />
+    <Compile Include="ABSoftware\Networking\Packets\Group\RegisterUserPacket.cs" />
+    <Compile Include="ABSoftware\Networking\Packets\Group\StatusResponsePacket.cs" />
     <Compile Include="ABSoftware\Networking\Packets\Group\TasksDataPacket.cs" />
     <Compile Include="ABSoftware\Networking\Packets\IPacket.cs" />
     <Compile Include="ABSoftware\Networking\Packets\PacketBuffer.cs" />

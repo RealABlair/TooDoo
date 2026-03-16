@@ -1,35 +1,35 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ABSoftware.Networking.Packets
 {
-    public class TasksDataPacket : IPacket
+    public class DeleteGroupPacket : IPacket
     {
-        public TasksDataPacket()
+        public DeleteGroupPacket()
         {
 
         }
 
+        public string groupName;
         public string loginKey;
 
-        public TasksDataPacket(string loginKey)
+        public DeleteGroupPacket(string groupName, string loginKey)
         {
+            this.groupName = groupName;
             this.loginKey = loginKey;
         }
 
         public void WritePacket(PacketBuffer buffer)
         {
+            buffer.WriteString(groupName);
             buffer.WriteString(loginKey);
         }
 
         public void ReadPacket(PacketBuffer buffer)
         {
+            groupName = buffer.ReadString();
             loginKey = buffer.ReadString();
         }
 
-        public int GetPacketId() => 0;
+        public int GetPacketId() => 6;
     }
 }

@@ -13,7 +13,15 @@ namespace ABSoftware.Networking
         static PacketManager()
         {
             //Register packets here:
-            RegisterPacket(new TasksDataPacket());
+            RegisterPacket(new TasksDataPacket()); //0
+            RegisterPacket(new CreateGroupPacket()); //1
+            RegisterPacket(new CreateTaskPacket()); //2 
+            RegisterPacket(new StatusResponsePacket()); //3
+            RegisterPacket(new RegisterUserPacket()); //4
+            RegisterPacket(new LoginUserPacket()); //5
+            RegisterPacket(new DeleteGroupPacket()); //6
+            RegisterPacket(new DeleteTaskPacket()); //7
+            RegisterPacket(new SwitchTaskStatePacket()); //8 
         }
 
         public static void RegisterPacket(IPacket packet)
