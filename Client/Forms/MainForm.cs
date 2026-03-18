@@ -414,7 +414,7 @@ namespace Client
             }
         }
 
-        private void RefreshDataButton_Click(object sender, EventArgs e)
+        void UpdateGroupsAndTasks()
         {
             groups.Clear();
             TasksList.Controls.Clear();
@@ -424,9 +424,9 @@ namespace Client
                 StatusResponsePacket responsePacket = (StatusResponsePacket)packet;
                 if (responsePacket.status == StatusResponsePacket.Status.OK)
                 {
-                    if(InvokeRequired)
+                    if (InvokeRequired)
                     {
-                        Invoke(new Action(() => 
+                        Invoke(new Action(() =>
                         {
                             HandleNetTasksData(responsePacket.data);
                         }));
@@ -439,6 +439,11 @@ namespace Client
                 else
                     MessagePopupForm.ShowMessage($"An error has occured while trying to request data. Error information: {responsePacket.data}");
             }));
+        }
+
+        private void RefreshDataButton_Click(object sender, EventArgs e)
+        {
+            UpdateGroupsAndTasks();
         }
 
         void HandleNetTasksData(string data)
@@ -463,6 +468,7 @@ namespace Client
         private void MainForm_Load(object sender, EventArgs e)
         {
             //RefreshDataButton_Click(sender, e);
+            UpdateGroupsAndTasks();
         }
     }
 }
