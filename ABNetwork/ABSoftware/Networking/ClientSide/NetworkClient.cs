@@ -89,13 +89,16 @@ namespace ABSoftware.Networking.ClientSide
 
         void OnPacketIn(IPacket responsePacket, string UPID)
         {
-            for(int i = 0; i < pendingPackets.Size; i++)
+            lock(pendingPackets)
             {
-                if(pendingPackets[i].UPID == UPID)
+                for (int i = 0; i < pendingPackets.Size; i++)
                 {
-                    PacketInHandler?.Invoke(responsePacket, pendingPackets[i]);
-                    pendingPackets.RemoveAt(i);
-                    break;
+                    if (pendingPackets[i].UPID == UPID)
+                    {
+                        PacketInHandler?.Invoke(responsePacket, pendingPackets[i]);
+                        pendingPackets.RemoveAt(i);
+                        break;
+                    }
                 }
             }
         }
