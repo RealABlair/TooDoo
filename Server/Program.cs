@@ -155,6 +155,76 @@ namespace Server
                         }
                     }
                     break;
+                case 6:
+                    {
+                        DeleteGroupPacket deleteGroupPacket = (DeleteGroupPacket)packet;
+                        int userId = DatabaseController.GetLoggedInUserID(deleteGroupPacket.loginKey);
+                        if (userId == -1)
+                            return;
+
+                        (int, string, int) group = DatabaseController.GetGroup(deleteGroupPacket.groupName, userId);
+                        if(group.Item1 != -1)
+                        {
+                            DatabaseController.DeleteGroupAndTasks(group.Item1);
+                            SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Success, string.Empty));
+                        }
+                        else
+                        {
+                            SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Failed, "Group doesn't exist."));
+                        }
+                    }
+                    break;
+                case 7:
+                    {
+                        DeleteTaskPacket deleteTaskPacket = (DeleteTaskPacket)packet;
+                        int userId = DatabaseController.GetLoggedInUserID(deleteTaskPacket.loginKey);
+                        if (userId == -1)
+                            return;
+
+                        (int, string, int) group = DatabaseController.GetGroup(deleteTaskPacket.groupName, userId);
+                        if (group.Item1 == -1)
+                        {
+                            SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Failed, "Group doesn't exist."));
+                            return;
+                        }
+                        
+                        (int, string, int, bool) task = DatabaseController.GetTask(group.Item1, deleteTaskPacket.taskName);
+                        if (task.Item1 != -1)
+                        {
+                            DatabaseController.DeleteTask(group.Item1, deleteTaskPacket.taskName);
+                            SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Success, string.Empty));
+                        }
+                        else
+                        {
+                            SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Failed, "Task doesn't exist."));
+                        }
+                    }
+                    break;
+                case 8:
+                    {
+                        SwitchTaskStatePacket switchTaskStatePacket = (SwitchTaskStatePacket)packet;
+                        int userId = DatabaseController.GetLoggedInUserID(switchTaskStatePacket.loginKey);
+                        if (userId == -1)
+                            return;
+
+                        (int, string, int) group = DatabaseController.GetGroup(switchTaskStatePacket.groupName, userId);
+                        if (group.Item1 == -1)
+                        {
+                            SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Failed, "Group doesn't exist."));
+                            return;
+                        }
+
+                        (int, string, int, bool) task = DatabaseController.GetTask(group.Item1, switchTaskStatePacket.taskName);
+                        if (task.Item1 == -1)
+                        {
+                            SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Failed, "Task doesn't exist."));
+                            return;
+                        }
+
+                        DatabaseController.UpdateTaskState(task.Item1, switchTaskStatePacket.taskState);
+                        SendPacket(client, UPID, new StatusResponsePacket(StatusResponsePacket.Status.Success, string.Empty));
+                    }
+                    break;
             }
         }
     }

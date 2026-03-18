@@ -227,6 +227,21 @@ namespace Server
             }
         }
 
+        public static void UpdateTaskState(int taskId, bool state)
+        {
+            using (SqliteConnection connection = new SqliteConnection(CONNECTION_STRING))
+            {
+                connection.Open();
+
+                SqliteCommand command = connection.CreateCommand();
+
+                command.CommandText = "UPDATE tasks SET state = @state WHERE id = @taskId";
+                command.Parameters.AddWithValue("@state", state ? 1 : 0);
+                command.Parameters.AddWithValue("@taskId", taskId);
+                command.ExecuteNonQuery();
+            }
+        }
+
         public static ArrayList<(string, string, bool)> FetchUserGroupsAndTasks(int userId)
         {
             ArrayList<(string, string, bool)> fetchedData = new ArrayList<(string, string, bool)>();
