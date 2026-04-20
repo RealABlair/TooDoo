@@ -29,6 +29,7 @@ namespace Client
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(RegisterForm));
             this.ControlBoxPanel = new ABSoftware.UI.DraggablePanel();
             this.AppLabel = new ABSoftware.UI.DraggableLabel();
             this.MinimizeButton = new System.Windows.Forms.Button();
@@ -210,6 +211,7 @@ namespace Client
             this.Controls.Add(this.UsernameTB);
             this.Controls.Add(this.LoginLabel);
             this.Controls.Add(this.ControlBoxPanel);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "RegisterForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "RegisterForm";
