@@ -89,6 +89,7 @@ namespace Client
             groupLabel.Font = new Font(groupLabel.Font.FontFamily, 10f, FontStyle.Bold);
             groupLabel.TextAlign = ContentAlignment.MiddleLeft;
             groupLabel.Padding = new Padding(5, 0, 0, 0);
+            groupLabel.Width = 500;
 
             DraggablePanel tasksPanel = new DraggablePanel();
             tasksPanel.Dock = DockStyle.Top;
@@ -178,11 +179,15 @@ namespace Client
                             Invoke(new Action(() =>
                             {
                                 AddTask(group, taskData, false);
+
+                                ApplyFilter(true);
                             }));
                         }
                         else
                         {
                             AddTask(group, taskData, false);
+
+                            ApplyFilter(true);
                         }
                     }
                     else
@@ -297,11 +302,13 @@ namespace Client
                             Invoke(new Action(() =>
                             {
                                 task.SwitchState();
+                                ApplyFilter(true);
                             }));
                         }
                         else
                         {
                             task.SwitchState();
+                            ApplyFilter(true);
                         }
                     }
                     else
@@ -328,6 +335,8 @@ namespace Client
                                 group.tasksPanel.Controls.Remove(taskPanel);
 
                                 group.RemoveTask(task);
+
+                                ApplyFilter(true);
                             }));
                         }
                         else
@@ -335,6 +344,8 @@ namespace Client
                             group.tasksPanel.Controls.Remove(taskPanel);
 
                             group.RemoveTask(task);
+
+                            ApplyFilter(true);
                         }
                     }
                     else
@@ -463,12 +474,65 @@ namespace Client
                     AddTask(group, tasks[j].PropertyName, bool.Parse(tasks[j].PropertyObject.ToString()));
                 }
             }
+
+            ApplyFilter(true);
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
             //RefreshDataButton_Click(sender, e);
             UpdateGroupsAndTasks();
+        }
+
+        FilterData filter = FiltersForm.DEFAULT_DATA;
+        private void FilterButton_Click(object sender, EventArgs e)
+        {
+            FiltersForm filters = new FiltersForm(filter);
+            DialogResult result = filters.ShowDialog();
+            if(result == DialogResult.OK)
+            {
+                this.filter = filters.Data;
+
+                ApplyFilter(true);
+            }
+
+
+        }
+
+        void ApplyFilter(bool affectSize)
+        {
+            bool searchFilter = filter.SearchString != string.Empty;
+            
+
+            for(int i = 0; i < groups.Size; i++)
+            {
+                int changeSize = 0;
+                int shown = 0;
+                for (int j = 0; j < groups[i].tasks.Size; j++)
+                {
+                    Task task = groups[i].tasks[j];
+
+                    bool flagSearch = (searchFilter && task.TaskData.ToLower().Contains(filter.SearchString.ToLower())) || (searchFilter && filter.MatchWholeWord && task.TaskData.Split(new char[] { ' ', '.', ',', '!', '?', ';' }).Any(w => w.Equals(filter.SearchString, StringComparison.OrdinalIgnoreCase)));
+                    bool flag = (filter.ShowCompletedTasks && task.Done) || (filter.ShowOutstandingTasks && !task.Done);
+
+                    bool visible = flag && (!searchFilter || (searchFilter && flagSearch));
+
+                    bool hasChanged = task.taskPanel.Visible != visible;
+
+                    task.taskPanel.Visible = visible;
+
+                    if (visible)
+                        shown++;
+
+                    if (hasChanged)
+                        changeSize += (visible ? task.taskPanel.Height : -task.taskPanel.Height);
+                }
+
+                if(affectSize)
+                    groups[i].tasksPanel.Height = shown == 0 ? 10 : shown * 30 + 10;
+
+                groups[i].UpdateCounter(shown);
+            }
         }
     }
 }

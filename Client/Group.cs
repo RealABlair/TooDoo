@@ -30,6 +30,8 @@ namespace Client
                 size += 10;
             tasksPanel.Height += size;
             tasks.Add(task);
+
+            UpdateCounter(tasks.Size);
         }
 
         public void RemoveTask(Task task)
@@ -42,6 +44,8 @@ namespace Client
             tasksPanel.Height -= size;
 
             RecolorTaskBackgrounds();
+
+            UpdateCounter(tasks.Size);
         }
 
         public void SwapTasks(int prevTaskId, int newTaskId)
@@ -60,6 +64,21 @@ namespace Client
             for(int i = 0; i < tasks.Size; i++)
             {
                 tasks[i].taskPanel.BackColor = i % 2 == 0 ? MainForm.COLOR_BLUE_EX1 : MainForm.COLOR_BLUE_EX2;
+            }
+        }
+
+        public void UpdateCounter(int activeCount)
+        {
+            for(int i = 0; i < groupPanel.Controls.Count; i++)
+            {
+                if(groupPanel.Controls[i].GetType() == typeof(DraggableLabel))
+                {
+                    DraggableLabel label = (DraggableLabel)groupPanel.Controls[i];
+
+                    label.Text = $"{this.groupName} {activeCount}/{tasks.Size}";
+
+                    break;
+                }
             }
         }
     }

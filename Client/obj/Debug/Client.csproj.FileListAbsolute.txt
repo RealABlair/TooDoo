@@ -16,3 +16,4 @@ C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.NewTaskForm.resou
 C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.MessagePopupForm.resources
 C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.LoginForm.resources
 C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.RegisterForm.resources
+C:\Users\Aleksandr\source\repos\TooDoo\Client\obj\Debug\Client.FiltersForm.resources
