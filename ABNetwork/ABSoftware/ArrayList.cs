@@ -1,15 +1,17 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace ABSoftware
 {
-    public class ArrayList<T>
+    public class ArrayList<T> : IEnumerable<T>
     {
         T[] elements = null;
 
         public int Capacity
         {
             get { return elements.Length; }
-            set
+            private set
             {
                 T[] newArray = new T[value];
                 Array.Copy(elements, 0, newArray, 0, Size);
@@ -26,7 +28,7 @@ namespace ABSoftware
 
         public ArrayList(T[] elements)
         {
-            this.elements = elements;
+            this.elements = (T[])elements.Clone();
             this.Size = elements.Length;
         }
 
@@ -74,46 +76,121 @@ namespace ABSoftware
             Size++;
         }
 
-        public void Remove(T element)
+        public void Add(T[] elements)
         {
-            for (int i = 0; i < Size; i++)
+            Insert(this.Size, elements);
+        }
+
+        public void Insert(int index, T element)
+        {
+            if (index > this.Size)
+                return;
+
+            ControlCapacity(this.Size + 1);
+
+            if (index < this.Size)
             {
-                if (elements[i].Equals(element))
-                {
-                    RemoveAt(i);
-                    break;
-                }
+                Array.Copy(this.elements, index, this.elements, index + 1, this.Size - index);
             }
+
+            this.elements[index] = element;
+            this.Size++;
+        }
+
+        public void Insert(int index, T[] elements)
+        {
+            if (index > this.Size)
+                return;
+
+            int length = elements.Length;
+            if (length > 0)
+            {
+                ControlCapacity(this.Size + length);
+
+                if (index < this.Size)
+                {
+                    Array.Copy(this.elements, index, this.elements, index + length, this.Size - index);
+                }
+
+                Array.Copy(elements, 0, this.elements, index, length);
+
+                this.Size += length;
+            }
+        }
+
+        public bool Remove(T element)
+        {
+            int index = FindIndex(e => { return EqualityComparer<T>.Default.Equals(e, element); });
+            if (index != -1)
+            {
+                RemoveAt(index);
+                return true;
+            }
+
+            return false;
         }
 
         public void RemoveAt(int id)
         {
-            Array.Copy(this.elements, id + 1, this.elements, id, this.Size - id - 1);
+            if (id >= Size || id < 0) throw new ArgumentOutOfRangeException();
+
+            int shiftCount = Size - id - 1;
+            if (shiftCount > 0)
+            {
+                Array.Copy(this.elements, id + 1, this.elements, id, shiftCount);
+            }
+
             Size--;
+            elements[Size] = default(T);
         }
 
-        public void RemoveIf(Func<T, bool> predicate)
+        public int RemoveIf(Func<T, bool> predicate)
         {
-            T[] stamp = GetElements();
-            for (int i = 0; i < stamp.Length; i++)
+            int removedCount = 0;
+            int writeIndex = 0;
+
+            for (int i = 0; i < Size; i++)
             {
-                if (predicate.Invoke(stamp[i]))
-                    Remove(stamp[i]);
+                if (predicate(elements[i]))
+                {
+                    removedCount++;
+                }
+                else
+                {
+                    elements[writeIndex] = elements[i];
+                    writeIndex++;
+                }
             }
+
+            for (int i = writeIndex; i < Size; i++)
+                elements[i] = default;
+
+            Size = writeIndex;
+
+            return removedCount;
         }
 
         public void Clear()
         {
-            elements = new T[0];
+            Array.Clear(elements, 0, Size);
             Size = 0;
-            ControlCapacity(0);
         }
 
         public bool Contains(T element)
         {
             for (int i = 0; i < Size; i++)
             {
-                if (elements[i].Equals(element))
+                if (EqualityComparer<T>.Default.Equals(elements[i], element))
+                    return true;
+            }
+            return false;
+        }
+
+        public bool Contains(Func<T, bool> predicate)
+        {
+            for (int i = 0; i < Size; i++)
+            {
+                if (predicate.Invoke(elements[i]))
                     return true;
             }
             return false;
@@ -133,6 +210,8 @@ namespace ABSoftware
         {
             for (int i = 0; i < Size; i++)
             {
+                if (elements[i] == null)
+                    continue;
                 if (predicate.Invoke(elements[i]))
                     return i;
             }
@@ -141,8 +220,9 @@ namespace ABSoftware
 
         public ArrayList<T> Copy()
         {
-            ArrayList<T> newList = new ArrayList<T>();
-            Array.Copy(elements, 0, newList.elements, 0, Size);
+            T[] array = new T[Size];
+            Array.Copy(elements, 0, array, 0, Size);
+            ArrayList<T> newList = new ArrayList<T>(array);
             return newList;
         }
 
@@ -150,37 +230,49 @@ namespace ABSoftware
         {
             if (Size <= 1)
                 return;
-            for (int i = 0; i < Size; i++)
+
+            void QuickSort(int start, int end)
             {
-                for (int j = i + 1; j < Size; j++)
+                if (start >= end) return;
+
+                T pivot = elements[start + ((end - start) / 2)];
+
+                int i = start;
+                int j = end;
+
+                while (i <= j)
                 {
-                    int sortingType = comparison.Invoke(elements[i], elements[j]);
+                    while (comparison(elements[i], pivot) < 0) i++;
+                    while (comparison(elements[j], pivot) > 0) j--;
 
-                    if (sortingType < -1)
-                        sortingType = -1;
-                    if (sortingType < -1)
-                        sortingType = -1;
-
-                    switch (sortingType)
+                    if (i <= j)
                     {
-                        case -1:
-                            {
-                                T buffer = elements[j];
-                                elements[j] = elements[i];
-                                elements[i] = buffer;
-                            }
-                            break;
-                        case 0:
-                            break;
-                        case 1:
-                            {
-                                elements[i] = elements[i];
-                                elements[j] = elements[j];
-                            }
-                            break;
+                        T temp = elements[i];
+                        elements[i] = elements[j];
+                        elements[j] = temp;
+                        i++;
+                        j--;
                     }
                 }
+
+                if (start < j) QuickSort(start, j);
+                if (i < end) QuickSort(i, end);
             }
+
+            QuickSort(0, Size - 1);
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            for (int i = 0; i < Size; i++)
+            {
+                yield return elements[i];
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
