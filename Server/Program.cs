@@ -56,6 +56,11 @@ namespace Server
 
                         for(int i = 0; i < groupsAndTasks.Size; i++)
                         {
+                            if (groupsAndTasks[i].Item2 == null)
+                            {
+                                klin["groups"][groupsAndTasks[i].Item1].PropertyObject = null;
+                                continue;
+                            }
                             klin["groups"][groupsAndTasks[i].Item1][groupsAndTasks[i].Item2].PropertyObject = groupsAndTasks[i].Item3;
                         }
 

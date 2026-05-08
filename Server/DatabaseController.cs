@@ -252,14 +252,18 @@ namespace Server
 
                 SqliteCommand command = connection.CreateCommand();
 
-                command.CommandText = "SELECT groups.name AS group_name, tasks.name as task_name, tasks.state as task_state FROM groups INNER JOIN tasks ON groups.id = tasks.group_id WHERE groups.user_id = @userId;";
+                command.CommandText = "SELECT groups.name AS group_name, tasks.name as task_name, tasks.state as task_state FROM groups LEFT JOIN tasks ON groups.id = tasks.group_id WHERE groups.user_id = @userId;";
                 command.Parameters.AddWithValue("@userId", userId);
 
                 using (SqliteDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())
                     {
-                        fetchedData.Add((reader.GetString(reader.GetOrdinal("group_name")), reader.GetString(reader.GetOrdinal("task_name")), reader.GetInt32(reader.GetOrdinal("task_state")) != 0));
+                        string groupName = reader.GetString(reader.GetOrdinal("group_name"));
+                        string task_name = reader.IsDBNull(reader.GetOrdinal("task_name")) ? null : reader.GetString(reader.GetOrdinal("task_name"));
+                        int task_state = reader.IsDBNull(reader.GetOrdinal("task_state")) ? 0 : reader.GetInt32(reader.GetOrdinal("task_state"));
+
+                        fetchedData.Add((groupName, task_name, task_state != 0));
                     }
                 }
             }
